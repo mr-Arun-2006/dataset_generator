@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Dataset Generator - AI-Powered Trading Data</title>
+    <meta name="description" content="Generate high-quality LLM training datasets for trading domain with PineScript, Price Action, and Institutional Flow analysis">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="background-gradient"></div>
+    <div class="grid-overlay"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">📊</div>
+                    <div>
+                        <h1 class="logo-title">Trading Dataset Generator</h1>
+                        <p class="logo-subtitle">AI-Powered Trading Intelligence</p>
+                    </div>
+                </div>
+                <div class="header-status">
+                    <div class="status-indicator" id="apiStatus">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Connecting...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Navigation Tabs -->
+            <nav class="tabs">
+                <button class="tab-button active" data-tab="generate">
+                    <span class="tab-icon">🚀</span>
+                    Generate
+                </button>
+                <button class="tab-button" data-tab="preview">
+                    <span class="tab-icon">👁️</span>
+                    Preview
+                </button>
+                <button class="tab-button" data-tab="datasets">
+                    <span class="tab-icon">📁</span>
+                    Datasets
+                </button>
+                <button class="tab-button" data-tab="validate">
+                    <span class="tab-icon">✓</span>
+                    Validate
+                </button>
+            </nav>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Generate Tab -->
+                <div class="tab-pane active" id="generate">
+                    <div class="grid-2">
+                        <!-- Configuration Panel -->
+                        <div class="card glass-card">
+                            <h2 class="card-title">Configuration</h2>
+                            
+                            <div class="form-group">
+                                <label for="datasetSize">Dataset Size</label>
+                                <input type="number" id="datasetSize" class="input-field" value="100" min="10" max="100000" step="10">
+                                <span class="input-hint">Number of samples to generate</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="seedValue">Random Seed</label>
+                                <input type="number" id="seedValue" class="input-field" value="0" min="0" max="999999">
+                                <span class="input-hint">0 = random seed</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="filename">Output Filename</label>
+                                <input type="text" id="filename" class="input-field" value="trading_dataset.jsonl">
+                                <span class="input-hint">Saved in datasets/ folder</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="balanceCategories" checked>
+                                    <span class="checkbox-custom"></span>
+                                    Balance Categories Equally
+                                </label>
+                            </div>
+
+                            <div id="weightControls" class="weight-controls" style="display: none;">
+                                <div class="form-group">
+                                    <label for="pineWeight">PineScript Weight (%)</label>
+                                    <input type="range" id="pineWeight" class="slider" min="0" max="100" value="30">
+                                    <span class="slider-value" id="pineWeightValue">30%</span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="priceWeight">Price Action Weight (%)</label>
+                                    <input type="range" id="priceWeight" class="slider" min="0" max="100" value="40">
+                                    <span class="slider-value" id="priceWeightValue">40%</span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Institutional Weight</label>
+                                    <div class="calculated-value" id="instWeightValue">30%</div>
+                                </div>
+                            </div>
+
+                            <button id="generateBtn" class="btn btn-primary btn-large">
+                                <span class="btn-icon">🚀</span>
+                                Generate Dataset
+                            </button>
+                        </div>
+
+                        <!-- Stats Panel -->
+                        <div class="stats-panel">
+                            <div class="card glass-card stat-card">
+                                <div class="stat-icon">📊</div>
+                                <div class="stat-value" id="totalSamples">100</div>
+                                <div class="stat-label">Total Samples</div>
+                            </div>
+
+                            <div class="card glass-card stat-card">
+                                <div class="stat-icon">📜</div>
+                                <div class="stat-value" id="pineSamples">33</div>
+                                <div class="stat-label">PineScript</div>
+                            </div>
+
+                            <div class="card glass-card stat-card">
+                                <div class="stat-icon">📈</div>
+                                <div class="stat-value" id="priceSamples">33</div>
+                                <div class="stat-label">Price Action</div>
+                            </div>
+
+                            <div class="card glass-card stat-card">
+                                <div class="stat-icon">🏦</div>
+                                <div class="stat-value" id="instSamples">34</div>
+                                <div class="stat-label">Institutional</div>
+                            </div>
+
+                            <!-- Progress Section -->
+                            <div class="card glass-card" id="progressCard" style="display: none;">
+                                <h3 class="card-subtitle">Generation Progress</h3>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <p class="progress-text" id="progressText">Generating...</p>
+                            </div>
+
+                            <!-- Result Section -->
+                            <div class="card glass-card success-card" id="resultCard" style="display: none;">
+                                <div class="success-icon">✓</div>
+                                <h3 class="success-title">Dataset Generated!</h3>
+                                <div class="result-details" id="resultDetails"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Tab -->
+                <div class="tab-pane" id="preview">
+                    <div class="preview-grid">
+                        <div class="card glass-card">
+                            <h3 class="card-title">PineScript Strategy</h3>
+                            <button class="btn btn-secondary" onclick="previewSample('pinescript')">
+                                Generate Sample
+                            </button>
+                            <div class="preview-content" id="previewPinescript"></div>
+                        </div>
+
+                        <div class="card glass-card">
+                            <h3 class="card-title">Price Action Analysis</h3>
+                            <button class="btn btn-secondary" onclick="previewSample('price_action')">
+                                Generate Sample
+                            </button>
+                            <div class="preview-content" id="previewPriceAction"></div>
+                        </div>
+
+                        <div class="card glass-card">
+                            <h3 class="card-title">Institutional Flow</h3>
+                            <button class="btn btn-secondary" onclick="previewSample('institutional')">
+                                Generate Sample
+                            </button>
+                            <div class="preview-content" id="previewInstitutional"></div>
+                        </div>
+
+                        <div class="card glass-card">
+                            <h3 class="card-title">OHLC Data</h3>
+                            <button class="btn btn-secondary" onclick="previewOHLC()">
+                                Generate Sample
+                            </button>
+                            <div class="preview-content" id="previewOHLC"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datasets Tab -->
+                <div class="tab-pane" id="datasets">
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h2 class="card-title">Generated Datasets</h2>
+                            <button class="btn btn-secondary" onclick="loadDatasets()">
+                                <span class="btn-icon">🔄</span>
+                                Refresh
+                            </button>
+                        </div>
+                        <div class="datasets-list" id="datasetsList">
+                            <div class="loading-state">Loading datasets...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validate Tab -->
+                <div class="tab-pane" id="validate">
+                    <div class="card glass-card">
+                        <h2 class="card-title">Validate Dataset</h2>
+                        <p class="card-description">Upload a JSONL file to validate its structure and content</p>
+                        
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">📤</div>
+                            <p class="upload-text">Drag & drop your JSONL file here</p>
+                            <p class="upload-subtext">or click to browse</p>
+                            <input type="file" id="fileInput" accept=".jsonl" hidden>
+                        </div>
+
+                        <div class="validation-result" id="validationResult" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
